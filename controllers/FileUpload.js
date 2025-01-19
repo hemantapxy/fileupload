@@ -4,16 +4,35 @@ const cloudinary = require('cloudinary').v2;
 //localfileupload  -> handler function
 exports.localFileUpload = async (req, res) => {
   try {
-    //fetch file from request
-    const file = req.files.file;
-    console.log(file);
+    // Check if files are present in the request
+    if (!req.files || !req.files.fileUpload) {
+      console.log("No file found in the request");
+      console.log("Request headers:", req.headers);
+      console.log("Request body:", req.body);
+      console.log("Request files:", req.files);
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
 
-    let path = __dirname + "/files/" + Date.now() + `.${file.name.split('.')[1]}`;
-    console.log(path);
+    // Fetch file from request
+    const file = req.files.fileUpload;
+    console.log("File received:", file);
 
-    //move file to path
+    let path = __dirname + "/files/" + Date.now() + `.${file.name.split('.').pop()}`;
+    console.log("File path:", path);
+
+    // Move file to path
     file.mv(path, (err) => {
-      console.log(err);
+      if (err) {
+        console.log("Error moving file:", err);
+        return res.status(500).json({
+          success: false,
+          message: "File upload failed",
+          error: err.message
+        });
+      }
     });
 
     res.json({
@@ -21,7 +40,7 @@ exports.localFileUpload = async (req, res) => {
       message: "File uploaded successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error during file upload:", error);
     res.status(500).json({
       success: false,
       message: "File upload failed",
