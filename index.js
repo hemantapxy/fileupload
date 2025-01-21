@@ -2,10 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const fs = require('fs');
+const cors = require('cors');
 const path = require('path');
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.use(cors()); // Enable CORS
 app.use(express.json());
 const fileUpload = require('express-fileupload');
 app.use(fileUpload({
@@ -40,6 +42,16 @@ app.get('/api/v1/files', (req, res) => {
             success: true,
             files: files
         });
+    });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Global error handler:', err.stack);
+    res.status(500).json({
+        success: false,
+        message: "An unexpected error occurred",
+        error: err.message
     });
 });
 
